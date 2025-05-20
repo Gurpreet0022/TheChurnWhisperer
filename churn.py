@@ -12,9 +12,10 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report, confusion_matrix, roc_curve, auc, precision_recall_curve
 from sklearn.impute import SimpleImputer
 import xgboost as xgb
-#import shap
 import pickle
 import os
+from warnings import filterwarnings
+filterwarnings('ignore')
 
 
 # Set page configuration
@@ -63,7 +64,7 @@ def load_data():
         # For demo purposes, create a synthetic dataset based on typical telecom churn data
         st.warning("No dataset found. Using synthetic data for demonstration.")
         
-        df_features = df_features.convert_dtypes()          ####
+        df_features = df_features.convert_dtypes()          
 
         # Generate synthetic data
         np.random.seed(42)
@@ -234,7 +235,6 @@ def preprocess_data(df):
     df_processed['TotalCharges'] = pd.to_numeric(df_processed['TotalCharges'], errors='coerce')
     
     # Handle any missing values in TotalCharges
-    ####df_processed['TotalCharges'].fillna(df_processed['MonthlyCharges'], inplace=True)
     df_processed['TotalCharges'] = df_processed['TotalCharges'].fillna(df_processed['MonthlyCharges'])
 
     
@@ -256,8 +256,7 @@ def create_features(df):
     
     # Calculate Monthly to Total Charges Ratio (customer consistency)
     df_features['charge_ratio'] = df_features['MonthlyCharges'] * df_features['tenure'] / df_features['TotalCharges']
-    ####df_features['charge_ratio'].fillna(1, inplace=True)  # Handle division by zero
-    df_features['charge_ratio'] = df_features['charge_ratio'].fillna(1)
+    df_features['charge_ratio'] = df_features['charge_ratio'].fillna(1) # Handle division by zero
 
     df_features['charge_ratio'] = df_features['charge_ratio'].clip(0.5, 1.5)  # Clip outliers
     
@@ -814,7 +813,6 @@ def main():
         # Churn rate by tenure
         st.markdown("#### Churn Rate by Tenure")
         
-        #tenure_churn = df_features.groupby('tenure_group')['Churn'].value_counts(normalize=True).unstack()
         tenure_churn = df_features.groupby('tenure_group', observed=False)['Churn'].value_counts(normalize=True).unstack()
 
         if 'Yes' in tenure_churn.columns:
@@ -1186,11 +1184,9 @@ def main():
         </div>
     """, unsafe_allow_html=True)
 
-
-
-
-
-                   
+    # Add a button to clear the session state
+    st.button("Clear Session State", on_click=lambda: st.session_state.clear(), key="clear_session_state")
+     
 # Run the application
 if __name__ == "__main__":
     main() 
